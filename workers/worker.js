@@ -17,6 +17,7 @@ const RESEARCH_DEPTH = {
 };
 const DEFAULT_CATEGORIES = ['Game Design', 'Steam', 'Game Industry'];
 const MAX_PROMPT_LENGTH = 1200;
+const DEFAULT_ALLOWED_ORIGINS = new Set(['https://quandd31112.github.io']);
 
 export default {
   async fetch(request, env, ctx) {
@@ -171,5 +172,5 @@ function isAllowedOrigin(request, env) {
   const origin = request.headers.get('Origin');
   if (!origin) return true;
   const configured = (env.ALLOWED_ORIGINS || '').split(',').map((item) => item.trim()).filter(Boolean);
-  return configured.includes(origin);
+  return configured.length ? configured.includes(origin) : DEFAULT_ALLOWED_ORIGINS.has(origin);
 }
