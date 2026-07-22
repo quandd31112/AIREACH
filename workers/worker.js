@@ -20,7 +20,7 @@ const MAX_PROMPT_LENGTH = 1200;
 const DEFAULT_ALLOWED_ORIGINS = new Set(['https://quandd31112.github.io']);
 
 export default {
-  async fetch(request, env, ctx) {
+  async fetch(request, env) {
     const corsHeaders = getCorsHeaders(request, env);
     const pathname = new URL(request.url).pathname;
 
@@ -34,17 +34,20 @@ export default {
     try { input = validateInput(await request.json()); }
     catch (error) { return json({ error: error.message || 'Yêu cầu không hợp lệ.' }, 400, corsHeaders); }
 
-    const { readable, writable } = new TransformStream();
-    const writer = writable.getWriter();
     const encoder = new TextEncoder();
-    const emit = (event) => writer.write(encoder.encode(`${JSON.stringify(event)}\n`));
-
-    ctx.waitUntil(runResearch(input, env, request.signal, emit)
-      .catch(async (error) => {
-        console.error('Research failed:', error);
-        await emit({ type: 'error', message: publicError(error) });
-      })
-      .finally(() => writer.close()));
+    const readable = new ReadableStream({
+      async start(controller) {
+        const emit = (event) => controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));
+        try {
+          await runResearch(input, env, request.signal, emit);
+        } catch (error) {
+          console.error('Research failed:', error);
+          emit({ type: 'error', message: publicError(error) });
+        } finally {
+          controller.close();
+        }
+      }
+    });
 
     return new Response(readable, {
       headers: {
