@@ -250,7 +250,7 @@
   function connectionErrorMessage(error) { return isConnectionError(error.message) ? 'Không thể kết nối Worker. Kiểm tra URL và thêm trang này vào ALLOWED_ORIGINS trong wrangler.toml.' : error.message; }
   function friendlyError(message) {
     if (isConnectionError(message)) return 'Trình duyệt không thể kết nối Worker. Mở “Kết nối Worker” để kiểm tra URL, rồi thêm domain trang này vào ALLOWED_ORIGINS.';
-    if (/secret|OPENAI/i.test(message)) return 'Worker đã kết nối nhưng đang thiếu server secret. Cấu hình OPENAI_API_KEY bằng Wrangler.';
+    if (/secret|OPENAI_API_KEY/i.test(message)) return 'Worker đã kết nối nhưng đang thiếu server secret. Cấu hình OPENAI_API_KEY trong Cloudflare.';
     return message;
   }
 

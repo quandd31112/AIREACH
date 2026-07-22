@@ -72,7 +72,6 @@ async function runResearch(input, env, signal, emit) {
       tool_choice: 'required',
       instructions: researchInstructions(),
       input: buildResearchRequest(input),
-      temperature: 0.2,
       max_output_tokens: 4000
     })
   });
