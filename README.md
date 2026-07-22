@@ -1,6 +1,6 @@
 # Game Research AI
 
-Game Research AI is a deployable personal research copilot for game designers. It discovers current coverage with Tavily, extracts source content with Firecrawl, and uses one OpenAI strategic synthesis pass to turn the verified evidence into practical design direction.
+Game Research AI is a deployable personal research copilot for game designers. It uses OpenAI Web Search and one strategic synthesis pass to turn current web evidence into practical design direction.
 
 No API key is sent to or stored in the frontend.
 
@@ -11,9 +11,9 @@ Giao diện và báo cáo được thiết kế để dùng tiếng Việt. Work
 ## Features
 
 - Premium responsive dashboard built with plain HTML, CSS, and ES6 JavaScript.
-- Research controls for categories, language (English or Vietnamese), and 8/12/20-source depth.
+- Research controls for categories, Vietnamese output, and quick/normal/deep search depth.
 - Live pipeline progress over a streamed Worker response.
-- Tavily discovery, URL deduplication, Firecrawl full-text extraction, and one source-grounded OpenAI synthesis.
+- OpenAI-hosted web search and one source-grounded strategic synthesis request.
 - A concise briefing with design patterns, market signals, indie/mobile opportunities, experiments, hype risks, outlook, action plan, and verified sources.
 - Safe built-in Markdown rendering, copy, Markdown download, browser PDF export, retry, errors, and persistent dark/light appearance.
 
@@ -34,8 +34,6 @@ Giao diện và báo cáo được thiết kế để dùng tiếng Việt. Work
 
 - A Cloudflare account and the [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/install-and-update/).
 - An OpenAI API key with access to the configured model. The Worker defaults to `gpt-5.5`; change `OPENAI_MODEL` if your organization uses a different supported model.
-- A Tavily API key.
-- A Firecrawl API key.
 
 ## Run locally
 
@@ -53,8 +51,6 @@ Giao diện và báo cáo được thiết kế để dùng tiếng Việt. Work
    cd workers
    npx wrangler login
    npx wrangler secret put OPENAI_API_KEY
-   npx wrangler secret put TAVILY_API_KEY
-   npx wrangler secret put FIRECRAWL_API_KEY
    ```
 
 3. Start the Worker:
@@ -73,13 +69,11 @@ Giao diện và báo cáo được thiết kế để dùng tiếng Việt. Work
    - Keep `RESEARCH_MAX_ARTICLES` at a safe usage limit for your budget. It can be lower than the UI's selected depth.
    - Optionally change `OPENAI_MODEL`.
 
-2. Configure the three secrets (the commands only save them in Cloudflare):
+2. Configure the OpenAI secret (the command only saves it in Cloudflare):
 
    ```bash
    cd workers
    npx wrangler secret put OPENAI_API_KEY
-   npx wrangler secret put TAVILY_API_KEY
-   npx wrangler secret put FIRECRAWL_API_KEY
    ```
 
 3. Deploy:
@@ -102,9 +96,9 @@ The `/health` endpoint confirms that the Worker is reachable. It never reveals w
 
 ## API and execution notes
 
-- `quick`, `normal`, and `deep` target 8, 12, and 20 articles. `RESEARCH_MAX_ARTICLES` is an intentional server-side safety limit.
-- Every run uses one OpenAI synthesis request, instead of per-article OpenAI calls. Start with `quick` while validating credentials and budget.
-- Individual unreadable or paywalled sources are skipped; the report is generated from successfully extracted articles only.
+- `quick`, `normal`, and `deep` control the breadth of OpenAI Web Search context. Start with `quick` while validating credentials and budget.
+- Every run uses one OpenAI request that searches the web and creates the strategic report.
+- OpenAI's web search selects and reads relevant public sources; the report retains source links when available.
 - The Worker uses CORS origin allowlisting. Do not use `*` for a production SaaS frontend.
 - There is no user authentication, billing, durable rate limiting, persistence, or job queue in this starter. Add Cloudflare Access/auth, Durable Objects/KV/D1, and a queue before exposing the Worker publicly at scale.
 
@@ -113,9 +107,7 @@ The `/health` endpoint confirms that the Worker is reachable. It never reveals w
 | Variable | Where | Purpose |
 | --- | --- | --- |
 | `OPENAI_API_KEY` | Worker secret | Authorizes OpenAI analysis requests. |
-| `TAVILY_API_KEY` | Worker secret | Authorizes real-time discovery searches. |
-| `FIRECRAWL_API_KEY` | Worker secret | Authorizes web-page extraction. |
-| `OPENAI_MODEL` | `wrangler.toml` variable | Model identifier, default `gpt-5.5`. |
+| `OPENAI_MODEL` | `wrangler.toml` variable | Model identifier, default `gpt-5`. |
 | `ALLOWED_ORIGINS` | `wrangler.toml` variable | Comma-separated frontend origins permitted by CORS. |
 | `RESEARCH_MAX_ARTICLES` | `wrangler.toml` variable | Server-side maximum articles per run. |
 
@@ -124,5 +116,5 @@ The `/health` endpoint confirms that the Worker is reachable. It never reveals w
 - Do not commit `.dev.vars`, `.env`, or API keys.
 - Use `wrangler secret put` for every key.
 - Limit `ALLOWED_ORIGINS` to known HTTPS frontend domains in production.
-- Set a conservative maximum research depth while estimating API spend.
+- Start with a low web-search context while estimating API spend.
 - Add authentication and request-level rate limiting before using a custom public Worker URL.
