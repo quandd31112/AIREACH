@@ -6,7 +6,7 @@
   const elements = {
     form: document.querySelector('#researchForm'), prompt: document.querySelector('#researchPrompt'), count: document.querySelector('#characterCount'),
     start: document.querySelector('#startButton'), stop: document.querySelector('#stopButton'), clear: document.querySelector('#clearButton'),
-    status: document.querySelector('#connectionStatus'), progress: document.querySelector('#progressWrap'), progressValue: document.querySelector('#progressValue'),
+    today: document.querySelector('#todayDate'), status: document.querySelector('#connectionStatus'), progress: document.querySelector('#progressWrap'), progressValue: document.querySelector('#progressValue'),
     progressLabel: document.querySelector('#progressLabel'), progressPercent: document.querySelector('#progressPercent'), empty: document.querySelector('#emptyState'),
     report: document.querySelector('#reportContent'), error: document.querySelector('#errorState'), errorMessage: document.querySelector('#errorMessage'),
     retry: document.querySelector('#retryButton'), exportActions: document.querySelector('#exportActions'), title: document.querySelector('#reportTitle'),
