@@ -11,9 +11,9 @@ const CORS_HEADERS = {
 };
 
 const DEPTH_CONFIG = {
-  quick: { articles: 12, queries: 3, perQuery: 4, tavilyDepth: 'basic' },
-  normal: { articles: 30, queries: 5, perQuery: 6, tavilyDepth: 'advanced' },
-  deep: { articles: 50, queries: 5, perQuery: 10, tavilyDepth: 'advanced' }
+  quick: { articles: 8, queries: 2, perQuery: 4, tavilyDepth: 'basic' },
+  normal: { articles: 12, queries: 3, perQuery: 4, tavilyDepth: 'advanced' },
+  deep: { articles: 20, queries: 4, perQuery: 5, tavilyDepth: 'advanced' }
 };
 
 const DEFAULT_CATEGORIES = ['Game Design', 'Steam', 'Game Industry'];
@@ -64,30 +64,19 @@ async function runResearch(input, env, signal, emit) {
   if (!sources.length) throw new Error('No relevant articles were found. Refine the prompt or try again.');
 
   await emit({ type: 'progress', percent: 25, message: `Reading ${sources.length} unique articles` });
-  const articles = await mapWithConcurrency(sources, 3, async (source, index) => {
+  const articles = await mapWithConcurrency(sources, 4, async (source, index) => {
     const article = await scrapeArticle(source, env, signal);
-    const progress = 25 + Math.round(((index + 1) / sources.length) * 28);
+    const progress = 25 + Math.round(((index + 1) / sources.length) * 48);
     await emit({ type: 'progress', percent: progress, message: `Extracted ${index + 1} of ${sources.length} articles` });
     return article;
   });
   const readableArticles = articles.filter((article) => article.content && article.content.length > 300);
   if (!readableArticles.length) throw new Error('The selected articles could not be read. Please try a different search.');
 
-  await emit({ type: 'progress', percent: 55, message: `Analyzing ${readableArticles.length} articles as a game designer` });
-  const summaries = await mapWithConcurrency(readableArticles, 3, async (article, index) => {
-    const summary = await summarizeArticle(article, input.language, env, signal);
-    const progress = 55 + Math.round(((index + 1) / readableArticles.length) * 25);
-    await emit({ type: 'progress', percent: progress, message: `Analyzed ${index + 1} of ${readableArticles.length} articles` });
-    return { ...article, summary };
-  });
-
-  await emit({ type: 'progress', percent: 82, message: 'Creating the daily industry report' });
-  const dailyReport = await generateDailyReport(summaries, input, env, signal);
-  await emit({ type: 'progress', percent: 91, message: "Finding cross-source patterns and strategic opportunities" });
-  const strategicInsights = await generateStrategicInsights(summaries, input, env, signal);
-  const report = `${dailyReport.trim()}\n\n## Game Designer's Strategic Insights\n\n${strategicInsights.trim()}\n\n## Sources\n\n${formatSources(summaries)}`;
+  await emit({ type: 'progress', percent: 78, message: 'Synthesizing source evidence into design guidance' });
+  const report = await generateResearchBrief(readableArticles, input, env, signal);
   await emit({ type: 'progress', percent: 100, message: 'Research report is ready' });
-  await emit({ type: 'complete', report, metadata: { title: `Daily Briefing · ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`, articleCount: summaries.length } });
+  await emit({ type: 'complete', report, metadata: { title: `Research Briefing · ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`, articleCount: readableArticles.length } });
 }
 
 function validateInput(payload) {
@@ -160,42 +149,35 @@ async function scrapeArticle(source, env, signal) {
 }
 
 function trimContent(content) {
-  return String(content).replace(/\s+/g, ' ').trim().slice(0, 24000);
+  return String(content).replace(/\s+/g, ' ').trim().slice(0, 10000);
 }
 
-async function summarizeArticle(article, language, env, signal) {
-  const instructions = `You are a Senior Game Designer. Analyze one current game-industry article. Write in ${language}. Use concise markdown with these exact headings: Summary, Key Takeaways, Game Design Lessons, Business Lessons, Monetization, Retention, LiveOps, Player Psychology, Why this matters, Should I read the full article?. If a topic is not supported by the article, say "Not addressed". Do not invent facts or numbers.`;
-  const input = `ARTICLE METADATA\nTitle: ${article.title}\nAuthor: ${article.author}\nWebsite: ${article.website}\nPublished: ${article.publishedDate}\nURL: ${article.url}\n\nARTICLE\n${article.content}`;
-  return openaiText(instructions, input, env, signal);
+async function generateResearchBrief(articles, input, env, signal) {
+  const sourceContext = buildSourceContext(articles, 90000);
+  const instructions = `You are a Lead Game Designer and research partner with over 15 years of experience. Produce a concise, decision-ready research briefing in ${input.language}. Base every factual claim only on the supplied sources; link the supporting source URL next to important claims. Separate facts from inference and say "No material signal found in this research set" where evidence is absent. Do not invent metrics, release dates, companies, or trends. Use this exact markdown structure: Executive Summary, What Happened, Design Patterns Worth Noticing, Market and Business Signals, Opportunities for Indie Developers, Opportunities for Mobile Developers, Experiments Worth Running, Risks and Temporary Hype, Game Designer's Strategic Insights, Next 6–12 Months, Action Plan, Sources. In Game Designer's Strategic Insights, provide specific and testable recommendations rather than a news summary.`;
+  const report = await openaiText(instructions, `Research question: ${input.prompt}\nCategories: ${input.categories.join(', ')}\n\nSOURCE MATERIAL\n${sourceContext}`, env, signal);
+  return ensureSources(report, articles);
 }
 
-async function generateDailyReport(summaries, input, env, signal) {
-  const digest = buildDigest(summaries, 72000);
-  const instructions = `You are a Senior Game Designer preparing a decision-ready daily research briefing. Write in ${input.language}. Use only evidence from the supplied article analyses; reconcile uncertainty and avoid invented facts. Generate concise markdown using every exact section heading below, in order: Executive Summary, Top Industry News, Game Design, Programming, Unity, Steam, AI, Market Trend, Business, Important Releases, Interesting Reddit Discussions, Useful GDC Talks, Final Insights, Action Items. When evidence is absent, write "No material signal found in this research set." Link claims to the relevant source URLs when practical.`;
-  return openaiText(instructions, `Research question: ${input.prompt}\nCategories: ${input.categories.join(', ')}\n\nARTICLE ANALYSES\n${digest}`, env, signal);
-}
-
-async function generateStrategicInsights(summaries, input, env, signal) {
-  const digest = buildDigest(summaries, 86000);
-  const instructions = `You are a Lead Game Designer with over 15 years of experience. You are performing a second, strategic analysis pass over multiple article analyses—not summarizing the news. Write in ${input.language}. Identify patterns only where evidence supports them and label speculation clearly. Return practical, concise markdown answering each exact heading: Repeated Trends, Rising Mechanics, Emerging Monetization Strategies, Companies Leading the Trend, Opportunities for Indie Developers, Opportunities for Mobile Game Developers, Experiments Worth Running, Temporary Hype to Watch, 6–12 Month Industry Outlook, Practical Recommendations. Every recommendation must be specific, testable, and relevant to game designers. Avoid invented facts.`;
-  return openaiText(instructions, `Research question: ${input.prompt}\nCategories: ${input.categories.join(', ')}\n\nARTICLE ANALYSES TO CROSS-ANALYZE\n${digest}`, env, signal);
-}
-
-function buildDigest(summaries, characterLimit) {
+function buildSourceContext(articles, characterLimit) {
   let used = 0;
-  return summaries.map((article, index) => {
-    const item = `\n--- ARTICLE ${index + 1} ---\nTitle: ${article.title}\nURL: ${article.url}\nPublished: ${article.publishedDate}\nAnalysis:\n${article.summary}\n`;
+  return articles.map((article, index) => {
+    const item = `\n--- SOURCE ${index + 1} ---\nTitle: ${article.title}\nWebsite: ${article.website}\nPublished: ${article.publishedDate}\nURL: ${article.url}\nContent:\n${article.content}\n`;
     if (used + item.length > characterLimit) return '';
     used += item.length;
     return item;
   }).filter(Boolean).join('');
 }
 
+function ensureSources(report, articles) {
+  return `${report.trim()}\n\n## Verified Sources\n\n${formatSources(articles)}`;
+}
+
 async function openaiText(instructions, input, env, signal) {
   const response = await fetch('https://api.openai.com/v1/responses', {
     method: 'POST', signal,
     headers: { Authorization: `Bearer ${env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: env.OPENAI_MODEL || 'gpt-5.5', instructions, input, temperature: 0.2, max_output_tokens: 3500 })
+    body: JSON.stringify({ model: env.OPENAI_MODEL || 'gpt-5.5', instructions, input, temperature: 0.2, max_output_tokens: 4000 })
   });
   const data = await readApiResponse(response, 'OpenAI');
   const text = data.output_text || data.output?.flatMap((item) => item.content || []).filter((item) => item.type === 'output_text').map((item) => item.text).join('\n');
@@ -225,8 +207,8 @@ async function mapWithConcurrency(items, concurrency, mapper) {
   return result;
 }
 
-function formatSources(summaries) {
-  return summaries.map((article) => `- [${article.title}](${article.url}) — ${article.website}${article.publishedDate !== 'Not listed' ? `, ${article.publishedDate}` : ''}`).join('\n');
+function formatSources(articles) {
+  return articles.map((article) => `- [${article.title}](${article.url}) — ${article.website}${article.publishedDate !== 'Not listed' ? `, ${article.publishedDate}` : ''}`).join('\n');
 }
 
 function hasRequiredSecrets(env) { return Boolean(env.OPENAI_API_KEY && env.TAVILY_API_KEY && env.FIRECRAWL_API_KEY); }

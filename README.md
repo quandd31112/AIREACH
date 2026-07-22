@@ -1,17 +1,16 @@
 # Game Research AI
 
-Game Research AI is a deployable research dashboard for game designers. It discovers current coverage with Tavily, extracts source content with Firecrawl, runs article-level analysis with OpenAI, and then runs a second Lead Game Designer pass to identify cross-source patterns and practical opportunities.
+Game Research AI is a deployable personal research copilot for game designers. It discovers current coverage with Tavily, extracts source content with Firecrawl, and uses one OpenAI strategic synthesis pass to turn the verified evidence into practical design direction.
 
 No API key is sent to or stored in the frontend.
 
 ## Features
 
 - Premium responsive dashboard built with plain HTML, CSS, and ES6 JavaScript.
-- Research controls for categories, language (English or Vietnamese), and 12/30/50-source depth.
+- Research controls for categories, language (English or Vietnamese), and 8/12/20-source depth.
 - Live pipeline progress over a streamed Worker response.
-- Tavily discovery, URL deduplication, Firecrawl full-text extraction, and per-article game-design analysis.
-- Daily briefing with industry, design, programming, Unity, Steam, AI, market, business, GDC, Reddit, and action-item sections.
-- A second Lead Game Designer analysis produces `Game Designer's Strategic Insights`: recurring trends, rising mechanics, monetization, opportunities, experiments, hype risks, outlook, and testable recommendations.
+- Tavily discovery, URL deduplication, Firecrawl full-text extraction, and one source-grounded OpenAI synthesis.
+- A concise briefing with design patterns, market signals, indie/mobile opportunities, experiments, hype risks, outlook, action plan, and verified sources.
 - Safe built-in Markdown rendering, copy, Markdown download, browser PDF export, retry, errors, and persistent dark/light appearance.
 
 ## Folder structure
@@ -99,8 +98,8 @@ The `/health` endpoint confirms that the Worker is reachable. It never reveals w
 
 ## API and execution notes
 
-- `quick`, `normal`, and `deep` target 12, 30, and 50 articles. `RESEARCH_MAX_ARTICLES` is an intentional server-side safety limit.
-- A long deep report can consume substantial Tavily, Firecrawl, and OpenAI usage. Start with `quick` while validating credentials and budget.
+- `quick`, `normal`, and `deep` target 8, 12, and 20 articles. `RESEARCH_MAX_ARTICLES` is an intentional server-side safety limit.
+- Every run uses one OpenAI synthesis request, instead of per-article OpenAI calls. Start with `quick` while validating credentials and budget.
 - Individual unreadable or paywalled sources are skipped; the report is generated from successfully extracted articles only.
 - The Worker uses CORS origin allowlisting. Do not use `*` for a production SaaS frontend.
 - There is no user authentication, billing, durable rate limiting, persistence, or job queue in this starter. Add Cloudflare Access/auth, Durable Objects/KV/D1, and a queue before exposing the Worker publicly at scale.
