@@ -30,7 +30,7 @@ export default {
       return json({ error: 'Not found' }, 404, corsHeaders);
     }
     if (!isAllowedOrigin(request, env)) return json({ error: 'Origin is not allowed.' }, 403, corsHeaders);
-    if (!hasRequiredSecrets(env)) return json({ error: 'Worker secrets are not configured.' }, 503, corsHeaders);
+    if (!hasRequiredSecrets(env)) return json({ error: 'Worker chưa được cấu hình server secret.' }, 503, corsHeaders);
 
     let input;
     try { input = validateInput(await request.json()); }
@@ -55,28 +55,28 @@ export default {
 async function runResearch(input, env, signal, emit) {
   const config = DEPTH_CONFIG[input.depth];
   const maxArticles = Math.min(config.articles, Number(env.RESEARCH_MAX_ARTICLES || config.articles));
-  await emit({ type: 'progress', percent: 5, message: 'Building focused search queries' });
+  await emit({ type: 'progress', percent: 5, message: 'Đang tạo truy vấn tìm kiếm' });
   const queries = buildQueries(input, config.queries);
 
-  await emit({ type: 'progress', percent: 10, message: `Searching current coverage across ${queries.length} topics` });
+  await emit({ type: 'progress', percent: 10, message: `Đang tìm tin mới ở ${queries.length} chủ đề` });
   const searchResults = await Promise.all(queries.map((query) => tavilySearch(query, config, env, signal)));
   const sources = deduplicateSources(searchResults.flat()).slice(0, maxArticles);
-  if (!sources.length) throw new Error('No relevant articles were found. Refine the prompt or try again.');
+  if (!sources.length) throw new Error('Không tìm thấy bài viết phù hợp. Hãy làm rõ câu hỏi và thử lại.');
 
-  await emit({ type: 'progress', percent: 25, message: `Reading ${sources.length} unique articles` });
+  await emit({ type: 'progress', percent: 25, message: `Đang đọc ${sources.length} bài viết không trùng lặp` });
   const articles = await mapWithConcurrency(sources, 4, async (source, index) => {
     const article = await scrapeArticle(source, env, signal);
     const progress = 25 + Math.round(((index + 1) / sources.length) * 48);
-    await emit({ type: 'progress', percent: progress, message: `Extracted ${index + 1} of ${sources.length} articles` });
+    await emit({ type: 'progress', percent: progress, message: `Đã trích xuất ${index + 1}/${sources.length} bài viết` });
     return article;
   });
   const readableArticles = articles.filter((article) => article.content && article.content.length > 300);
-  if (!readableArticles.length) throw new Error('The selected articles could not be read. Please try a different search.');
+  if (!readableArticles.length) throw new Error('Không thể đọc các bài viết đã chọn. Hãy thử một truy vấn khác.');
 
-  await emit({ type: 'progress', percent: 78, message: 'Synthesizing source evidence into design guidance' });
+  await emit({ type: 'progress', percent: 78, message: 'Đang tổng hợp nguồn thành hướng thiết kế' });
   const report = await generateResearchBrief(readableArticles, input, env, signal);
-  await emit({ type: 'progress', percent: 100, message: 'Research report is ready' });
-  await emit({ type: 'complete', report, metadata: { title: `Research Briefing · ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`, articleCount: readableArticles.length } });
+  await emit({ type: 'progress', percent: 100, message: 'Báo cáo nghiên cứu đã sẵn sàng' });
+  await emit({ type: 'complete', report, metadata: { title: `Bản tin nghiên cứu · ${new Date().toLocaleDateString('vi-VN', { month: 'short', day: 'numeric', year: 'numeric' })}`, articleCount: readableArticles.length } });
 }
 
 function validateInput(payload) {
@@ -84,7 +84,7 @@ function validateInput(payload) {
   const prompt = String(payload.prompt || '').trim();
   if (!prompt || prompt.length > MAX_PROMPT_LENGTH) throw new Error(`Prompt must be between 1 and ${MAX_PROMPT_LENGTH} characters.`);
   const categories = Array.isArray(payload.categories) ? payload.categories.map((item) => String(item).trim()).filter(Boolean).slice(0, 18) : [];
-  const language = payload.language === 'Vietnamese' ? 'Vietnamese' : 'English';
+  const language = 'Vietnamese';
   const depth = Object.hasOwn(DEPTH_CONFIG, payload.depth) ? payload.depth : 'normal';
   return { prompt, categories: categories.length ? categories : DEFAULT_CATEGORIES, language, depth };
 }
@@ -154,7 +154,7 @@ function trimContent(content) {
 
 async function generateResearchBrief(articles, input, env, signal) {
   const sourceContext = buildSourceContext(articles, 90000);
-  const instructions = `You are a Lead Game Designer and research partner with over 15 years of experience. Produce a concise, decision-ready research briefing in ${input.language}. Base every factual claim only on the supplied sources; link the supporting source URL next to important claims. Separate facts from inference and say "No material signal found in this research set" where evidence is absent. Do not invent metrics, release dates, companies, or trends. Use this exact markdown structure: Executive Summary, What Happened, Design Patterns Worth Noticing, Market and Business Signals, Opportunities for Indie Developers, Opportunities for Mobile Developers, Experiments Worth Running, Risks and Temporary Hype, Game Designer's Strategic Insights, Next 6–12 Months, Action Plan, Sources. In Game Designer's Strategic Insights, provide specific and testable recommendations rather than a news summary.`;
+  const instructions = `Bạn là Lead Game Designer và đối tác nghiên cứu với hơn 15 năm kinh nghiệm. Viết toàn bộ báo cáo bằng tiếng Việt tự nhiên, rõ ràng và dễ hành động. Khi nguồn là tiếng Anh, hãy dịch và diễn giải các thông tin liên quan sang tiếng Việt; chỉ giữ tên sản phẩm, công ty, thuật ngữ chuyên ngành hoặc trích dẫn ngắn ở ngôn ngữ gốc khi cần. Dựa mọi khẳng định thực tế duy nhất vào các nguồn được cung cấp; đặt URL nguồn bên cạnh các khẳng định quan trọng. Phân biệt sự kiện với suy luận, và ghi "Không có tín hiệu đáng kể trong tập nguồn này." khi thiếu bằng chứng. Không bịa số liệu, ngày phát hành, công ty hay xu hướng. Dùng đúng cấu trúc Markdown sau: Tóm tắt điều hành, Điều gì đang diễn ra, Mẫu thiết kế đáng chú ý, Tín hiệu thị trường và kinh doanh, Cơ hội cho nhà phát triển indie, Cơ hội cho nhà phát triển mobile, Thử nghiệm nên thực hiện, Rủi ro và xu hướng nhất thời, Góc nhìn chiến lược cho Game Designer, 6–12 tháng tới, Kế hoạch hành động, Nguồn. Trong phần Góc nhìn chiến lược cho Game Designer, đưa ra khuyến nghị cụ thể và có thể kiểm chứng, không chỉ tóm tắt tin tức.`;
   const report = await openaiText(instructions, `Research question: ${input.prompt}\nCategories: ${input.categories.join(', ')}\n\nSOURCE MATERIAL\n${sourceContext}`, env, signal);
   return ensureSources(report, articles);
 }
@@ -181,7 +181,7 @@ async function openaiText(instructions, input, env, signal) {
   });
   const data = await readApiResponse(response, 'OpenAI');
   const text = data.output_text || data.output?.flatMap((item) => item.content || []).filter((item) => item.type === 'output_text').map((item) => item.text).join('\n');
-  if (!text) throw new Error('OpenAI returned no analysis.');
+  if (!text) throw new Error('OpenAI không trả về nội dung phân tích.');
   return text;
 }
 
@@ -212,7 +212,7 @@ function formatSources(articles) {
 }
 
 function hasRequiredSecrets(env) { return Boolean(env.OPENAI_API_KEY && env.TAVILY_API_KEY && env.FIRECRAWL_API_KEY); }
-function publicError(error) { return error.name === 'AbortError' ? 'Research was stopped.' : error.message?.replace(/(sk-[\w-]+|fc-[\w-]+|tvly-[\w-]+)/g, '[redacted]') || 'Research failed.'; }
+function publicError(error) { return error.name === 'AbortError' ? 'Nghiên cứu đã được dừng.' : error.message?.replace(/(sk-[\w-]+|fc-[\w-]+|tvly-[\w-]+)/g, '[đã ẩn]') || 'Nghiên cứu thất bại.'; }
 function json(body, status, headers) { return new Response(JSON.stringify(body), { status, headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8' } }); }
 function getCorsHeaders(request, env) { const origin = request.headers.get('Origin'); return { ...CORS_HEADERS, 'Access-Control-Allow-Origin': isAllowedOrigin(request, env) && origin ? origin : 'null' }; }
 function isAllowedOrigin(request, env) { const origin = request.headers.get('Origin'); if (!origin) return true; const configured = (env.ALLOWED_ORIGINS || '').split(',').map((item) => item.trim()).filter(Boolean); return configured.length === 0 || configured.includes(origin); }

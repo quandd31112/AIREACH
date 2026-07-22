@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="vi">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="AI-powered game industry research for game designers." />
+    <meta name="description" content="Trợ lý nghiên cứu ngành game bằng AI dành cho game designer." />
     <title>Game Research AI</title>
     <link rel="stylesheet" href="style.css" />
   </head>
@@ -16,76 +16,75 @@
         </a>
         <div class="topbar-actions">
           <div class="today" id="todayDate"></div>
-          <span class="status-pill" id="connectionStatus"><i></i> Checking service</span>
-          <button class="connection-button" id="connectionButton" type="button">Connect Worker</button>
-          <button class="icon-button" id="themeToggle" type="button" aria-label="Toggle color theme">◐</button>
+          <span class="status-pill" id="connectionStatus"><i></i> Đang kiểm tra dịch vụ</span>
+          <button class="connection-button" id="connectionButton" type="button">Kết nối Worker</button>
+          <button class="icon-button" id="themeToggle" type="button" aria-label="Đổi giao diện">◐</button>
         </div>
       </header>
 
       <main id="top">
         <section class="hero">
           <div>
-            <p class="eyebrow">GAME RESEARCH COPILOT</p>
-            <h1>Ask a question. Get<br />a playable next move.</h1>
+            <p class="eyebrow">TRỢ LÝ NGHIÊN CỨU GAME</p>
+            <h1>Đặt câu hỏi. Nhận<br />bước đi tiếp theo.</h1>
           </div>
-          <p class="hero-copy">Read current game coverage, verify the sources, and turn the signal into practical design decisions.</p>
+          <p class="hero-copy">Đọc tin game mới nhất, kiểm chứng nguồn và biến tín hiệu thị trường thành quyết định thiết kế thực tế.</p>
         </section>
 
         <div class="workspace-grid">
-          <aside class="research-panel" aria-label="Research controls">
+          <aside class="research-panel" aria-label="Điều khiển nghiên cứu">
             <form id="researchForm">
               <div class="field-group prompt-group">
-                <label for="researchPrompt">Research prompt</label>
-                <textarea id="researchPrompt" name="prompt" maxlength="1200" placeholder="What do you want to research today?" required></textarea>
+                <label for="researchPrompt">Câu hỏi nghiên cứu</label>
+                <textarea id="researchPrompt" name="prompt" maxlength="1200" placeholder="Hôm nay bạn muốn nghiên cứu điều gì?" required></textarea>
                 <div class="field-hint"><span id="characterCount">0</span>/1200</div>
               </div>
 
               <fieldset class="field-group">
-                <legend>Research categories</legend>
+                <legend>Chủ đề quan tâm</legend>
                 <div class="category-grid" id="categoryGrid">
-                  <label><input type="checkbox" name="categories" value="Game Design" checked /><span>Game Design</span></label>
-                  <label><input type="checkbox" name="categories" value="Game Development" /><span>Game Development</span></label>
-                  <label><input type="checkbox" name="categories" value="Programming" /><span>Programming</span></label>
+                  <label><input type="checkbox" name="categories" value="Game Design" checked /><span>Thiết kế game</span></label>
+                  <label><input type="checkbox" name="categories" value="Game Development" /><span>Phát triển game</span></label>
+                  <label><input type="checkbox" name="categories" value="Programming" /><span>Lập trình</span></label>
                   <label><input type="checkbox" name="categories" value="Unity" /><span>Unity</span></label>
                   <label><input type="checkbox" name="categories" value="Unreal" /><span>Unreal</span></label>
                   <label><input type="checkbox" name="categories" value="Steam" checked /><span>Steam</span></label>
-                  <label><input type="checkbox" name="categories" value="Mobile Games" /><span>Mobile Games</span></label>
-                  <label><input type="checkbox" name="categories" value="PC Games" /><span>PC Games</span></label>
-                  <label><input type="checkbox" name="categories" value="Console Games" /><span>Console Games</span></label>
-                  <label><input type="checkbox" name="categories" value="LiveOps" /><span>LiveOps</span></label>
-                  <label><input type="checkbox" name="categories" value="Monetization" /><span>Monetization</span></label>
-                  <label><input type="checkbox" name="categories" value="Retention" /><span>Retention</span></label>
+                  <label><input type="checkbox" name="categories" value="Mobile Games" /><span>Game mobile</span></label>
+                  <label><input type="checkbox" name="categories" value="PC Games" /><span>Game PC</span></label>
+                  <label><input type="checkbox" name="categories" value="Console Games" /><span>Game console</span></label>
+                  <label><input type="checkbox" name="categories" value="LiveOps" /><span>Vận hành trực tiếp</span></label>
+                  <label><input type="checkbox" name="categories" value="Monetization" /><span>Kiếm tiền</span></label>
+                  <label><input type="checkbox" name="categories" value="Retention" /><span>Giữ chân người chơi</span></label>
                   <label><input type="checkbox" name="categories" value="UX" /><span>UX</span></label>
                   <label><input type="checkbox" name="categories" value="AI" /><span>AI</span></label>
-                  <label><input type="checkbox" name="categories" value="Game Industry" checked /><span>Game Industry</span></label>
-                  <label><input type="checkbox" name="categories" value="Marketing" /><span>Marketing</span></label>
+                  <label><input type="checkbox" name="categories" value="Game Industry" checked /><span>Ngành game</span></label>
+                  <label><input type="checkbox" name="categories" value="Marketing" /><span>Tiếp thị</span></label>
                   <label><input type="checkbox" name="categories" value="GDC" /><span>GDC</span></label>
-                  <label><input type="checkbox" name="categories" value="Indie Games" /><span>Indie Games</span></label>
+                  <label><input type="checkbox" name="categories" value="Indie Games" /><span>Game indie</span></label>
                 </div>
               </fieldset>
 
               <div class="controls-row">
                 <fieldset class="field-group compact-group">
-                  <legend>Language</legend>
-                  <div class="segmented" role="radiogroup" aria-label="Research language">
-                    <label><input type="radio" name="language" value="English" checked /><span>English</span></label>
-                    <label><input type="radio" name="language" value="Vietnamese" /><span>Tiếng Việt</span></label>
+                  <legend>Ngôn ngữ báo cáo</legend>
+                  <div class="segmented" role="radiogroup" aria-label="Ngôn ngữ báo cáo">
+                    <label><input type="radio" name="language" value="Vietnamese" checked /><span>Tiếng Việt · tự dịch nguồn</span></label>
                   </div>
                 </fieldset>
                 <fieldset class="field-group compact-group">
-                  <legend>Research depth</legend>
-                  <div class="segmented depth-select" role="radiogroup" aria-label="Research depth">
-                    <label><input type="radio" name="depth" value="quick" /><span>Quick</span></label>
-                    <label><input type="radio" name="depth" value="normal" checked /><span>Normal</span></label>
-                    <label><input type="radio" name="depth" value="deep" /><span>Deep</span></label>
+                  <legend>Độ sâu nghiên cứu</legend>
+                  <div class="segmented depth-select" role="radiogroup" aria-label="Độ sâu nghiên cứu">
+                    <label><input type="radio" name="depth" value="quick" /><span>Nhanh</span></label>
+                    <label><input type="radio" name="depth" value="normal" checked /><span>Thường</span></label>
+                    <label><input type="radio" name="depth" value="deep" /><span>Sâu</span></label>
                   </div>
                 </fieldset>
               </div>
 
               <div class="button-row">
-                <button class="button primary" id="startButton" type="submit"><span>✦</span> Start Research</button>
-                <button class="button secondary" id="stopButton" type="button" disabled>Stop</button>
-                <button class="button ghost" id="clearButton" type="button">Clear</button>
+                <button class="button primary" id="startButton" type="submit"><span>✦</span> Bắt đầu nghiên cứu</button>
+                <button class="button secondary" id="stopButton" type="button" disabled>Dừng</button>
+                <button class="button ghost" id="clearButton" type="button">Xóa</button>
               </div>
             </form>
           </aside>
@@ -93,38 +92,38 @@
           <section class="report-panel" aria-live="polite">
             <div class="report-toolbar">
               <div>
-                <p class="eyebrow">DAILY BRIEFING</p>
-                <h2 id="reportTitle">Your research report</h2>
+                <p class="eyebrow">BẢN TIN NGHIÊN CỨU</p>
+                <h2 id="reportTitle">Báo cáo của bạn</h2>
               </div>
               <div class="export-actions" id="exportActions" hidden>
-                <button class="toolbar-button" id="copyButton" type="button">Copy</button>
+                <button class="toolbar-button" id="copyButton" type="button">Sao chép</button>
                 <button class="toolbar-button" id="markdownButton" type="button">.md</button>
                 <button class="toolbar-button" id="pdfButton" type="button">PDF</button>
               </div>
             </div>
 
             <div class="progress-wrap" id="progressWrap" hidden>
-              <div class="progress-meta"><span id="progressLabel">Preparing research</span><span id="progressPercent">0%</span></div>
+              <div class="progress-meta"><span id="progressLabel">Đang chuẩn bị nghiên cứu</span><span id="progressPercent">0%</span></div>
               <div class="progress-track"><div class="progress-value" id="progressValue"></div></div>
             </div>
 
             <div class="empty-state" id="emptyState">
               <div class="empty-orbit"><span>✦</span></div>
-              <h3>Start with a question</h3>
-              <p>Choose the areas you care about, then turn today’s industry signals into actionable design insight.</p>
+              <h3>Bắt đầu bằng một câu hỏi</h3>
+              <p>Chọn chủ đề bạn quan tâm, rồi biến tín hiệu ngành game hôm nay thành hướng thiết kế cụ thể.</p>
               <div class="suggestion-chips">
-                <button type="button" data-prompt="What game design and monetization trends are gaining traction in mobile games?">Mobile trends</button>
-                <button type="button" data-prompt="What are the latest Steam opportunities and challenges for indie developers?">Steam for indies</button>
-                <button type="button" data-prompt="How is AI changing game development, player experience, and LiveOps?">AI in games</button>
+                <button type="button" data-prompt="Xu hướng thiết kế và kiếm tiền nào đang nổi lên trong game mobile?">Xu hướng mobile</button>
+                <button type="button" data-prompt="Cơ hội và thách thức mới nhất trên Steam cho nhà phát triển game indie là gì?">Steam cho game indie</button>
+                <button type="button" data-prompt="AI đang thay đổi việc phát triển game, trải nghiệm người chơi và LiveOps như thế nào?">AI trong game</button>
               </div>
             </div>
 
             <div class="report-content markdown-body" id="reportContent" hidden></div>
             <div class="error-state" id="errorState" hidden>
               <div class="error-icon">!</div>
-              <h3>Research couldn’t be completed</h3>
-              <p id="errorMessage">Please check the service configuration and try again.</p>
-              <button class="button secondary" id="retryButton" type="button">Retry research</button>
+              <h3>Không thể hoàn tất nghiên cứu</h3>
+              <p id="errorMessage">Vui lòng kiểm tra cấu hình dịch vụ rồi thử lại.</p>
+              <button class="button secondary" id="retryButton" type="button">Thử lại</button>
             </div>
           </section>
         </div>
@@ -134,18 +133,18 @@
       <form id="connectionForm" method="dialog">
         <div class="dialog-heading">
           <div>
-            <p class="eyebrow">SERVICE CONNECTION</p>
-            <h2 id="connectionDialogTitle">Connect your research Worker</h2>
+            <p class="eyebrow">KẾT NỐI DỊCH VỤ</p>
+            <h2 id="connectionDialogTitle">Kết nối Research Worker</h2>
           </div>
-          <button class="dialog-close" id="closeConnectionDialog" type="button" aria-label="Close">×</button>
+          <button class="dialog-close" id="closeConnectionDialog" type="button" aria-label="Đóng">×</button>
         </div>
-        <p>Paste your deployed Cloudflare Worker URL. This saves only the URL in this browser—never API keys.</p>
-        <label for="workerUrl">Cloudflare Worker URL</label>
+        <p>Dán URL Cloudflare Worker đã deploy. Trình duyệt chỉ lưu URL, tuyệt đối không lưu API key.</p>
+        <label for="workerUrl">URL Cloudflare Worker</label>
         <input id="workerUrl" type="url" inputmode="url" placeholder="https://game-research-ai-worker.your-subdomain.workers.dev" required />
         <p class="dialog-message" id="connectionMessage" role="status"></p>
         <div class="dialog-actions">
-          <button class="button ghost" id="resetConnectionButton" type="button">Use local URL</button>
-          <button class="button primary" id="saveConnectionButton" type="submit">Save and test</button>
+          <button class="button ghost" id="resetConnectionButton" type="button">Dùng URL cục bộ</button>
+          <button class="button primary" id="saveConnectionButton" type="submit">Lưu và kiểm tra</button>
         </div>
       </form>
     </dialog>

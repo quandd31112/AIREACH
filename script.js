@@ -50,18 +50,18 @@
   async function checkHealth() {
     try {
       const response = await fetch(`${workerUrl}/health`, { method: 'GET' });
-      if (!response.ok) throw new Error(`Worker health check returned ${response.status}.`);
-      setStatus('Ready', false);
-      elements.connectionButton.textContent = 'Worker connected';
+      if (!response.ok) throw new Error(`Worker trả về mã ${response.status}.`);
+      setStatus('Sẵn sàng', false);
+      elements.connectionButton.textContent = 'Worker đã kết nối';
     } catch (error) {
-      setStatus('Worker setup needed', false, true);
-      elements.connectionButton.textContent = 'Connect Worker';
+      setStatus('Cần kết nối Worker', false, true);
+      elements.connectionButton.textContent = 'Kết nối Worker';
       console.warn('Game Research AI Worker health check failed:', error);
     }
   }
 
   function setDate() {
-    elements.today.textContent = new Intl.DateTimeFormat(undefined, { weekday: 'short', month: 'short', day: 'numeric' }).format(new Date());
+    elements.today.textContent = new Intl.DateTimeFormat('vi-VN', { weekday: 'short', month: 'short', day: 'numeric' }).format(new Date());
   }
 
   function getPayload() {
@@ -85,7 +85,7 @@
     state.lastPayload = payload;
     state.controller = new AbortController();
     setBusy(true);
-    updateProgress(3, 'Planning your research');
+    updateProgress(3, 'Đang lập kế hoạch nghiên cứu');
     try {
       const response = await fetch(`${workerUrl}/api/research`, {
         method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/x-ndjson' },
@@ -94,8 +94,8 @@
       if (!response.ok || !response.body) throw new Error(await responseError(response));
       await consumeStream(response.body);
     } catch (error) {
-      if (error.name !== 'AbortError') showError(error.message || 'The research request failed.');
-      else showError('Research was stopped. You can retry whenever you are ready.');
+      if (error.name !== 'AbortError') showError(error.message || 'Yêu cầu nghiên cứu thất bại.');
+      else showError('Nghiên cứu đã được dừng. Bạn có thể thử lại bất cứ lúc nào.');
     } finally {
       state.controller = null;
       setBusy(false);
@@ -122,26 +122,26 @@
     try { event = JSON.parse(line); } catch { return; }
     if (event.type === 'progress') updateProgress(event.percent, event.message);
     if (event.type === 'complete') showReport(event.report, event.metadata);
-    if (event.type === 'error') throw new Error(event.message || 'Research failed.');
+    if (event.type === 'error') throw new Error(event.message || 'Nghiên cứu thất bại.');
   }
 
   function showReport(markdown, metadata = {}) {
     state.reportMarkdown = markdown;
-    elements.title.textContent = metadata.title || 'Research report';
+    elements.title.textContent = metadata.title || 'Báo cáo nghiên cứu';
     elements.report.innerHTML = renderMarkdown(markdown);
     elements.report.hidden = false;
     elements.empty.hidden = true;
     elements.error.hidden = true;
     elements.progress.hidden = true;
     elements.exportActions.hidden = false;
-    setStatus(`${metadata.articleCount || 0} sources analyzed`, false);
+    setStatus(`Đã phân tích ${metadata.articleCount || 0} nguồn`, false);
   }
 
   function updateProgress(percent, message) {
     elements.progress.hidden = false;
     elements.progressValue.style.width = `${Math.min(100, Math.max(0, percent || 0))}%`;
     elements.progressPercent.textContent = `${Math.round(percent || 0)}%`;
-    elements.progressLabel.textContent = message || 'Working';
+    elements.progressLabel.textContent = message || 'Đang xử lý';
   }
 
   function resetOutput() {
@@ -156,19 +156,19 @@
     state.reportMarkdown = ''; state.lastPayload = null;
     state.lastErrorIsConnection = false;
     elements.empty.hidden = false; elements.report.hidden = true; elements.error.hidden = true; elements.progress.hidden = true; elements.exportActions.hidden = true;
-    elements.title.textContent = 'Your research report'; setStatus('Ready', false);
+    elements.title.textContent = 'Báo cáo của bạn'; setStatus('Sẵn sàng', false);
   }
 
   function showError(message) {
     elements.progress.hidden = true; elements.report.hidden = true; elements.empty.hidden = true; elements.error.hidden = false;
     elements.errorMessage.textContent = friendlyError(message); setStatus('Needs attention', false, true);
     state.lastErrorIsConnection = isConnectionError(message);
-    elements.retry.textContent = state.lastErrorIsConnection ? 'Configure Worker' : 'Retry research';
+    elements.retry.textContent = state.lastErrorIsConnection ? 'Cấu hình Worker' : 'Thử lại';
   }
 
   function setBusy(isBusy) {
     elements.start.disabled = isBusy; elements.stop.disabled = !isBusy; elements.clear.disabled = isBusy;
-    setStatus(isBusy ? 'Researching' : 'Ready', isBusy);
+    setStatus(isBusy ? 'Đang nghiên cứu' : 'Sẵn sàng', isBusy);
   }
 
   function setStatus(message, working, error = false) {
@@ -178,14 +178,14 @@
   }
 
   async function copyReport() {
-    try { await navigator.clipboard.writeText(state.reportMarkdown); elements.copy.textContent = 'Copied'; setTimeout(() => { elements.copy.textContent = 'Copy'; }, 1600); }
-    catch { elements.copy.textContent = 'Copy failed'; }
+    try { await navigator.clipboard.writeText(state.reportMarkdown); elements.copy.textContent = 'Đã sao chép'; setTimeout(() => { elements.copy.textContent = 'Sao chép'; }, 1600); }
+    catch { elements.copy.textContent = 'Không thể sao chép'; }
   }
 
   function downloadMarkdown() {
     const blob = new Blob([state.reportMarkdown], { type: 'text/markdown;charset=utf-8' });
     const url = URL.createObjectURL(blob); const link = document.createElement('a');
-    link.href = url; link.download = `game-research-${new Date().toISOString().slice(0, 10)}.md`; link.click(); URL.revokeObjectURL(url);
+    link.href = url; link.download = `nghien-cuu-game-${new Date().toISOString().slice(0, 10)}.md`; link.click(); URL.revokeObjectURL(url);
   }
 
   function toggleTheme() { applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'); }
@@ -201,16 +201,16 @@
     event.preventDefault();
     let candidate;
     try { candidate = resolveWorkerUrl(elements.workerUrl.value); }
-    catch { setConnectionMessage('Enter a valid HTTPS Worker URL, or use a local HTTP URL while developing.', true); return; }
-    setConnectionMessage('Testing connection…');
+    catch { setConnectionMessage('Nhập URL Worker HTTPS hợp lệ, hoặc URL HTTP cục bộ khi phát triển.', true); return; }
+    setConnectionMessage('Đang kiểm tra kết nối…');
     try {
       const response = await fetch(`${candidate}/health`, { method: 'GET' });
-      if (!response.ok) throw new Error(`Health check returned ${response.status}.`);
+      if (!response.ok) throw new Error(`Kiểm tra dịch vụ trả về mã ${response.status}.`);
       workerUrl = candidate;
       localStorage.setItem('gameResearchApiUrl', workerUrl);
-      setConnectionMessage('Worker connected. This browser will use this URL.', false, true);
-      setStatus('Ready', false);
-      elements.connectionButton.textContent = 'Worker connected';
+      setConnectionMessage('Đã kết nối Worker. Trình duyệt này sẽ dùng URL trên.', false, true);
+      setStatus('Sẵn sàng', false);
+      elements.connectionButton.textContent = 'Worker đã kết nối';
       setTimeout(() => elements.connectionDialog.close(), 650);
     } catch (error) {
       setConnectionMessage(connectionErrorMessage(error), true);
@@ -221,7 +221,7 @@
     workerUrl = DEFAULT_WORKER_URL;
     localStorage.removeItem('gameResearchApiUrl');
     elements.workerUrl.value = workerUrl;
-    setConnectionMessage('Using the local Worker URL. Start `wrangler dev` before researching.');
+    setConnectionMessage('Đang dùng URL Worker cục bộ. Hãy chạy `wrangler dev` trước khi nghiên cứu.');
     checkHealth();
   }
 
@@ -235,9 +235,9 @@
     const contentType = response.headers.get('content-type') || '';
     if (contentType.includes('application/json')) {
       const data = await response.json().catch(() => ({}));
-      return data.error || data.message || `Worker returned ${response.status}.`;
+      return data.error || data.message || `Worker trả về mã ${response.status}.`;
     }
-    return (await response.text()).trim() || `Worker returned ${response.status}.`;
+    return (await response.text()).trim() || `Worker trả về mã ${response.status}.`;
   }
 
   function resolveWorkerUrl(value) {
@@ -247,10 +247,10 @@
   }
 
   function isConnectionError(message) { return /failed to fetch|networkerror|worker unavailable|origin is not allowed|worker health/i.test(message); }
-  function connectionErrorMessage(error) { return isConnectionError(error.message) ? 'Could not reach this Worker. Check the URL and add this site to ALLOWED_ORIGINS in wrangler.toml.' : error.message; }
+  function connectionErrorMessage(error) { return isConnectionError(error.message) ? 'Không thể kết nối Worker. Kiểm tra URL và thêm trang này vào ALLOWED_ORIGINS trong wrangler.toml.' : error.message; }
   function friendlyError(message) {
-    if (isConnectionError(message)) return 'The browser could not reach the Worker. Open “Connect Worker” to check its URL, then add this frontend origin to ALLOWED_ORIGINS.';
-    if (/secrets are not configured|OPENAI|TAVILY|FIRECRAWL/i.test(message)) return 'The Worker is reachable, but one or more server secrets are missing. Configure OPENAI_API_KEY, TAVILY_API_KEY, and FIRECRAWL_API_KEY with Wrangler.';
+    if (isConnectionError(message)) return 'Trình duyệt không thể kết nối Worker. Mở “Kết nối Worker” để kiểm tra URL, rồi thêm domain trang này vào ALLOWED_ORIGINS.';
+    if (/secrets are not configured|OPENAI|TAVILY|FIRECRAWL/i.test(message)) return 'Worker đã kết nối nhưng đang thiếu server secret. Cấu hình OPENAI_API_KEY, TAVILY_API_KEY và FIRECRAWL_API_KEY bằng Wrangler.';
     return message;
   }
 

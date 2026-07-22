@@ -4,6 +4,10 @@ Game Research AI is a deployable personal research copilot for game designers. I
 
 No API key is sent to or stored in the frontend.
 
+## Ngôn ngữ
+
+Giao diện và báo cáo được thiết kế để dùng tiếng Việt. Worker luôn yêu cầu AI dịch và diễn giải các nguồn tiếng Anh sang tiếng Việt tự nhiên; tên game, công ty, thuật ngữ quan trọng và URL nguồn được giữ lại để bạn kiểm chứng.
+
 ## Features
 
 - Premium responsive dashboard built with plain HTML, CSS, and ES6 JavaScript.
