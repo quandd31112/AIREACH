@@ -258,11 +258,14 @@
     const escaped = escapeHtml(markdown).replace(/\r\n/g, '\n');
     const blocks = escaped.split(/\n{2,}/).map((block) => block.trim()).filter(Boolean);
     return blocks.map((block) => {
-      if (/^```/.test(block)) return `<pre><code>${block.replace(/^```\w*\n?|```$/g, '')}</code></pre>`;
+      if (/^```/.test(block)) {
+        const code = block.replace(/^```\w*\n?/, '').replace(/```$/, '');
+        return `<pre><code>${code}</code></pre>`;
+      }
       if (/^###\s/.test(block)) return `<h3>${inlineMarkdown(block.replace(/^###\s/, ''))}</h3>`;
       if (/^##\s/.test(block)) return `<h2>${inlineMarkdown(block.replace(/^##\s/, ''))}</h2>`;
       if (/^#\s/.test(block)) return `<h1>${inlineMarkdown(block.replace(/^#\s/, ''))}</h1>`;
-      if (/^&gt;\s/.test(block)) return `<blockquote>${inlineMarkdown(block.replace(/^&gt;\s/gm, '').replace(/\n/g, '<br>')}</blockquote>`;
+      if (/^&gt;\s/.test(block)) return `<blockquote>${inlineMarkdown(block.replace(/^&gt;\s/gm, '').replace(/\n/g, '<br>'))}</blockquote>`;
       if (/^(?:[-*+]\s|\d+\.\s)/m.test(block)) {
         const ordered = /^\d+\.\s/.test(block); const items = block.split('\n').filter(Boolean).map((line) => line.replace(ordered ? /^\d+\.\s/ : /^[-*+]\s/, ''));
         return `<${ordered ? 'ol' : 'ul'}>${items.map((item) => `<li>${inlineMarkdown(item)}</li>`).join('')}</${ordered ? 'ol' : 'ul'}>`;
