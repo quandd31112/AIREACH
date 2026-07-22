@@ -1,0 +1,17 @@
+name = "game-research-ai-worker"
+main = "worker.js"
+compatibility_date = "2026-07-22"
+workers_dev = true
+
+# Set these with `wrangler secret put`—never commit their values.
+# OPENAI_API_KEY
+# TAVILY_API_KEY
+# FIRECRAWL_API_KEY
+
+[vars]
+# The model can be changed without redeploying code.
+OPENAI_MODEL = "gpt-5.5"
+# Comma-separated allowed frontend origins. Add your GitHub Pages domain before production.
+ALLOWED_ORIGINS = "http://localhost:3000,http://127.0.0.1:3000,http://localhost:8000,http://127.0.0.1:8000"
+# Optional cost and execution guardrail. The UI depth target remains 12 / 30 / 50.
+RESEARCH_MAX_ARTICLES = "50"
